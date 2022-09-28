@@ -37,5 +37,57 @@ describe("Curve Swap", () => {
         console.log(owner);
     });
 
+    it("Should get DAI and USDT contracts", async () => {
+        signers = await ethers.getSigners();
+        const Swap = await ethers.getContractFactory("Swap");
+        swapcontract = await Swap.deploy();
+    });
+
+    it("Should deposit DAI: ", async () => {
+        let balance = await dai.balanceOf(daiwhale.address);
+        
+        await dai.connect(daiwhale).approve(swapcontract.address, balance);
+        
+        await swapcontract.connect(daiwhale).deposit(DAI, balance);
+
+        let daiBalance = await dai.balanceOf(swapcontract.address);
+
+        expect(balance == daiBalance);
+
+        console.log(daiBalance);
+    });
+
+    it("Should swap DAI for USDT: ", async () => {
+
+        let daiBalance = await dai.balanceOf(swapcontract.address);
+
+        await swapcontract.connect(daiwhale).swap(DAI,USDT,daiBalance);
+
+        let usdtBalance = await usdt.balanceOf(swapcontract.address);
+
+        let usdtBalance1 = await swapcontract.balances(daiwhale.address,USDT);
+
+        console.log("dai balance", daiBalance);
+        console.log("usdt balance", usdtBalance);
+        console.log("usdt balance in contract", usdtBalance1);
+    });
+    
+
+    it("Should withdraw usdt: ", async () => {
+
+        let usdtBalance = await usdt.balanceOf(swapcontract.address);
+
+        let userBalancet0 = await usdt.balanceOf(daiwhale.address);
+
+        console.log(usdtBalance);
+        console.log(swapcontract.address);
+
+        await swapcontract.connect(daiwhale).withdraw(USDT,usdtBalance);
+
+        let userBalancet1 = await usdt.balanceOf(daiwhale.address);
+
+        console.log("dai balance of contract", usdtBalance);
+        console.log("added usdt balance of user", userBalancet1 - userBalancet0);
+    });
 
 });
